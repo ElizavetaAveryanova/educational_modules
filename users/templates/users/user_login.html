@@ -1,0 +1,13 @@
+{% extends "modules/base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<h2>Вход</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}  <!-- Встроенная форма аутентификации -->
+    <button type="submit" class="btn btn-primary">Войти</button>
+</form>
+{% endblock %}
+

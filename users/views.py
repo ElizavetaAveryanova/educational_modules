@@ -1,0 +1,127 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import ListView
+from django.urls import reverse
+from config.settings import EMAIL_HOST_USER
+from users.forms import UserRegisterForm, UserProfileForm, CustomSetPasswordForm
+from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.messages.views import SuccessMessageMixin
+
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from users.models import User
+import uuid
+from django.contrib import messages
+
+
+class UserRegisterView(CreateView):
+    form_class = UserRegisterForm
+    template_name = 'users/user_register.html'
+
+    def form_valid(self, form):
+        # Сохраняем пользователя
+        user = form.save(commit=False)
+        user.is_active = False  # Неактивен до подтверждения
+        user.token = self.generate_token()  # Генерация токена
+        user.save()
+
+        # Генерация ссылки для подтверждения
+        confirmation_link = self.request.build_absolute_uri(reverse('users:confirm_registration', args=[user.token]))
+
+        # Отправка письма
+        subject = 'Подтверждение регистрации'
+        html_message = render_to_string('users/registration_email.html', {
+            'user': user,
+            'confirmation_link': confirmation_link
+        })
+        plain_message = strip_tags(html_message)
+        from_email = EMAIL_HOST_USER
+        to_email = user.email
+        send_mail(subject, plain_message, from_email, [to_email], html_message=html_message)
+
+        # Показать сообщение о проверке почты
+        messages.success(self.request, 'Проверьте вашу почту для подтверждения регистрации!')
+
+        # Перенаправляем на главную страницу или другую страницу
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse_lazy('modules:index')  # Перенаправление на главную страницу
+
+    def generate_token(self):
+        return str(uuid.uuid4())
+
+
+# Список пользователей
+class UserListView(ListView):
+    model = User
+    template_name = 'users/user_list.html'
+    context_object_name = 'users'
+
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    form_class = UserProfileForm
+    template_name = 'users/user_profile.html'
+    success_url = reverse_lazy('users:user_profile')
+
+    def get_object(self):
+        return self.request.user  # Вернете текущего аутентифицированного пользователя
+
+# Обновление профиля пользователя
+class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
+    form_class = UserProfileForm
+    template_name = 'users/profile_update.html'
+    success_url = reverse_lazy('users:user_profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+# Удаление пользователя
+class UserDeleteView(DeleteView):
+    model = User
+    template_name = 'users/user_confirm_delete.html'
+    success_url = reverse_lazy('users:user_list')
+
+# Сброс пароля
+class UserPasswordResetView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'users/password_reset.html'
+    email_template_name = 'users/password_reset_email.html'
+    subject_template_name = 'users/password_reset_subject.txt'
+    success_message = "Ссылка для сброса пароля была отправлена на вашу почту."
+
+    def get_success_url(self):
+        return reverse_lazy('users:login')
+
+# Подтверждение сброса пароля
+class UserPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView):
+    template_name = 'users/password_reset_confirm.html'
+    success_url = reverse_lazy('users:login')
+    form_class = CustomSetPasswordForm
+    success_message = "Ваш пароль успешно обновлен."
+
+# Вход пользователя
+class UserLoginView(LoginView):
+    template_name = 'users/user_login.html'  # Путь к вашему шаблону входа
+    redirect_authenticated_user = True  # Перенаправляет аутентифицированных пользователей
+
+def confirm_registration(request, token):
+    try:
+        user = User.objects.get(token=token)
+        if user.is_active:
+            messages.warning(request, "Регистрация уже подтверждена.")
+            return redirect('users:login')
+
+        # Если пользователь не активен, активируем его
+        user.is_active = True
+        user.token = None  # Удаляем токен после подтверждения
+        user.save()
+        messages.success(request, "Ваш аккаунт успешно подтвержден! Теперь вы можете войти на сайт.")
+
+        # Перенаправляем пользователя на его профиль после подтверждения регистрации
+        return redirect('users:user_profile')
+
+    except User.DoesNotExist:
+        messages.error(request, "Неверный токен подтверждения.")
+        return redirect('users:login')
