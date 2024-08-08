@@ -1,8 +1,9 @@
-
 from django.contrib.auth.forms import UserChangeForm, PasswordResetForm, SetPasswordForm
 from django import forms
 from users.models import User
 from django.utils.translation import gettext_lazy as _
+
+
 class UserRegisterForm(forms.ModelForm):
     """Форма для регистрации нового пользователя"""
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput)
@@ -32,7 +33,7 @@ class UserProfileForm(UserChangeForm):
     """Форма для редактирования профиля пользователя"""
     class Meta:
         model = User  # Указываем модель вашей пользовательской модели
-        fields = ('email', 'first_name', 'last_name')
+        fields = ('email', 'first_name', 'last_name', 'telegram', )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
