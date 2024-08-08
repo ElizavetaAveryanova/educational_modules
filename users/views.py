@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView
 from django.urls import reverse
@@ -18,11 +18,12 @@ from django.contrib import messages
 
 
 class UserRegisterView(CreateView):
+    """Регистрация нового пользователя"""
     form_class = UserRegisterForm
     template_name = 'users/user_register.html'
 
     def form_valid(self, form):
-        # Сохраняем пользователя
+        """Сохранение пользователя и отправка письма для подтверждения регистрации"""
         user = form.save(commit=False)
         user.is_active = False  # Неактивен до подтверждения
         user.token = self.generate_token()  # Генерация токена
@@ -45,57 +46,78 @@ class UserRegisterView(CreateView):
         # Показать сообщение о проверке почты
         messages.success(self.request, 'Проверьте вашу почту для подтверждения регистрации!')
 
-        # Перенаправляем на главную страницу или другую страницу
+        # Перенаправляем на главную страницу
         return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse_lazy('modules:index')  # Перенаправление на главную страницу
+        """Возвращает URL-адрес для перенаправления после успешной регистрации"""
+        return reverse_lazy('modules:index')
 
     def generate_token(self):
+        """Генерирует уникальный токен для подтверждения регистрации"""
         return str(uuid.uuid4())
 
 
-# Список пользователей
 class UserListView(ListView):
+    """View для отображения списка пользователей"""
     model = User
     template_name = 'users/user_list.html'
     context_object_name = 'users'
 
+    def get_context_data(self, **kwargs):
+        """Добавляет в контекст URL-адрес для просмотра профиля пользователя"""
+        context = super().get_context_data(**kwargs)
+        context['user_profile_url'] = reverse_lazy('users:user_profile')
+        return context
+
 class UserProfileView(LoginRequiredMixin, UpdateView):
+    """View для отображения профиля пользователя"""
     form_class = UserProfileForm
     template_name = 'users/user_profile.html'
     success_url = reverse_lazy('users:user_profile')
 
     def get_object(self):
-        return self.request.user  # Вернете текущего аутентифицированного пользователя
+        """Возвращает текущего аутентифицированного пользователя"""
+        return self.request.user
 
-# Обновление профиля пользователя
+
 class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """View для обновления профиля пользователя"""
     form_class = UserProfileForm
     template_name = 'users/profile_update.html'
     success_url = reverse_lazy('users:user_profile')
 
     def get_object(self, queryset=None):
+        """Возвращает текущего аутентифицированного пользователя"""
         return self.request.user
 
-# Удаление пользователя
-class UserDeleteView(DeleteView):
+
+class UserDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View для удаления профиля пользователя"""
     model = User
     template_name = 'users/user_confirm_delete.html'
-    success_url = reverse_lazy('users:user_list')
+    success_url = reverse_lazy('modules:index')
 
-# Сброс пароля
+    def test_func(self):
+        """Проверяет, что текущий пользователь является владельцем профиля"""
+        obj = self.get_object()
+        return obj == self.request.user
+
+
 class UserPasswordResetView(SuccessMessageMixin, PasswordResetView):
+    """View для сброса пароля пользователя"""
     template_name = 'users/password_reset.html'
     email_template_name = 'users/password_reset_email.html'
     subject_template_name = 'users/password_reset_subject.txt'
     success_message = "Ссылка для сброса пароля была отправлена на вашу почту."
 
     def get_success_url(self):
+        """Перенаправляет на страницу входа после успешного сброса пароля"""
         return reverse_lazy('users:login')
 
-# Подтверждение сброса пароля
+
 class UserPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView):
+    """View для подтверждения сброса пароля"""
     template_name = 'users/password_reset_confirm.html'
     success_url = reverse_lazy('users:login')
     form_class = CustomSetPasswordForm

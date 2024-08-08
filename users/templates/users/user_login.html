@@ -6,7 +6,7 @@
 <h2>Вход</h2>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}  <!-- Встроенная форма аутентификации -->
+    {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Войти</button>
 </form>
 {% endblock %}

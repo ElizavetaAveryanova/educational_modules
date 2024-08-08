@@ -26,6 +26,9 @@
                         </li>
                         {% endif %}
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:user_delete' user.pk %}">Удалить профиль</a>
+                        </li>
+                        <li class="nav-item">
                             <form action="{% url 'users:logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="nav-link btn btn-link">Выйти</button>
@@ -56,5 +59,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+
+
 
 

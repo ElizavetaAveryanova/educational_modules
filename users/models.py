@@ -34,7 +34,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, verbose_name='Фамилия', **NULLABLE)
     is_active = models.BooleanField(default=False, verbose_name='Активирован')
     telegram = models.CharField(max_length=50, verbose_name='Telegram', **NULLABLE)
-    is_verified = models.BooleanField(default=False, verbose_name='Подтверждение')
     token = models.CharField(max_length=50, verbose_name='Токен', **NULLABLE)
 
     is_staff = models.BooleanField(default=False)

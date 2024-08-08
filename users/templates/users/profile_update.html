@@ -1,6 +1,7 @@
 {% extends 'modules/base.html' %}
 
 {% block content %}
+
 <h1>Обновление профиля</h1>
 
 {% if messages %}
@@ -13,7 +14,7 @@
 
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}  <!-- Отображаем форму. Вы можете настроить вывод, если нужно. -->
+    {{ form.as_p }}
 
     <button type="submit" class="btn btn-primary">Сохранить изменения</button>
 </form>
