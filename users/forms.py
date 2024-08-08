@@ -4,6 +4,7 @@ from django import forms
 from users.models import User
 from django.utils.translation import gettext_lazy as _
 class UserRegisterForm(forms.ModelForm):
+    """Форма для регистрации нового пользователя"""
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Подтверждение пароля', widget=forms.PasswordInput)
 
@@ -12,6 +13,7 @@ class UserRegisterForm(forms.ModelForm):
         fields = ('email', 'first_name', 'last_name', 'password1', 'password2')  # 'username' убрали
 
     def clean_password2(self):
+        """Проверяет, что пароли совпадают"""
         password1 = self.cleaned_data.get('password1')
         password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
@@ -19,6 +21,7 @@ class UserRegisterForm(forms.ModelForm):
         return password2
 
     def save(self, commit=True):
+        """Сохраняет нового пользователя с хешированным паролем"""
         user = super().save(commit=False)
         user.set_password(self.cleaned_data['password1'])  # Хешируем пароль
         if commit:
@@ -26,6 +29,7 @@ class UserRegisterForm(forms.ModelForm):
         return user
 
 class UserProfileForm(UserChangeForm):
+    """Форма для редактирования профиля пользователя"""
     class Meta:
         model = User  # Указываем модель вашей пользовательской модели
         fields = ('email', 'first_name', 'last_name')
@@ -36,6 +40,7 @@ class UserProfileForm(UserChangeForm):
 
 
 class CustomSetPasswordForm(SetPasswordForm):
+    """Форма для смены пароля"""
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super().__init__(user, *args, **kwargs)
@@ -47,8 +52,8 @@ class CustomSetPasswordForm(SetPasswordForm):
         return self.user
 
 
-
 class CustomPasswordResetForm(PasswordResetForm):
+    """Форма для сброса пароля"""
     class Meta:
         model = User
         fields = ('email',)
