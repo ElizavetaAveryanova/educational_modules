@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +23,10 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework.authtoken',
+    'django_filters',
+    'django_celery_beat',
+    'drf_yasg',
 
     'users',
     'modules',
@@ -83,6 +88,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'users.authentication.EmailAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+        # 'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100,
+}
+
 LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'Asia/Almaty'
@@ -108,14 +129,43 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = '/'
-# LOGIN_REDIRECT_URL = '/'
-
 LOGIN_URL = 'users:login'
-LOGIN_REDIRECT_URL = 'users:user_profile'  # URL, куда будут перенаправлены пользователи после входа
+# LOGIN_REDIRECT_URL = 'modules:module_list'  # URL, куда будут перенаправлены пользователи после входа
 
+LOGOUT_REDIRECT_URL = 'index'
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = '/'
 
 # User
 AUTH_USER_MODEL = "users.User"
+
+
+# Authentication
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+
+# Cache
+CACHE_ENABLED = os.getenv('CACHE_ENABLED') == 'True'
+if CACHE_ENABLED:
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': os.getenv('REDIS')
+        }
+    }
+
+
+# Celery-beat
+CELERY_BEAT_SCHEDULE = {
+    'check_users_and_block_inactive': {
+        'task': 'modules.tasks.send_email_update_modules',
+        'schedule': timedelta(minutes=1),
+    },
+}
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -129,3 +179,32 @@ RECIPIENT_LIST = os.getenv('RECIPIENT_LIST', '').split(',')
 
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Celery
+# URL-адрес брокера сообщений, Redis
+CELERY_BROKER_URL = "redis://redis:6379/0"
+
+# URL-адрес брокера результатов, Redis
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+
+# Celery URL-адрес брокера сообщений, Redis
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+# URL-адрес брокера результатов, Redis
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",  # Замените на адрес фронтенд-сервера
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",  # Замените на адрес фронтенд-сервера
+]
+
+CORS_ALLOW_ALL_ORIGINS = False

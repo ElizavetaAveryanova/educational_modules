@@ -1,15 +1,10 @@
 {% extends "modules/base.html" %}
-
 {% block title %}Удалить пользователя{% endblock %}
-
 {% block content %}
-
 <h2>Вы уверены, что хотите удалить пользователя "{{ object.first_name }}"?</h2>
 <form method="post">
     {% csrf_token %}
-    {% if object == request.user %}
     <button type="submit" class="btn btn-danger">Удалить</button>
-    {% endif %}
-    <a href="{% url 'users:user_list' %}" class="btn btn-secondary">Отмена</a>
+    <a href="{% url 'index' %}" class="btn btn-secondary">Назад</a>
 </form>
 {% endblock %}

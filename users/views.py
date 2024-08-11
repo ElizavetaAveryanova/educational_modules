@@ -6,7 +6,6 @@ from config.settings import EMAIL_HOST_USER
 from users.forms import UserRegisterForm, UserProfileForm, CustomSetPasswordForm
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetConfirmView
 from django.contrib.messages.views import SuccessMessageMixin
-
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
@@ -51,7 +50,7 @@ class UserRegisterView(CreateView):
 
     def get_success_url(self):
         """Возвращает URL-адрес для перенаправления после успешной регистрации"""
-        return reverse_lazy('modules:index')
+        return reverse_lazy('index')
 
     def generate_token(self):
         """Генерирует уникальный токен для подтверждения регистрации"""
@@ -72,9 +71,11 @@ class UserListView(ListView):
 
 class UserProfileView(LoginRequiredMixin, UpdateView):
     """View для отображения профиля пользователя"""
+
     form_class = UserProfileForm
     template_name = 'users/user_profile.html'
     success_url = reverse_lazy('users:user_profile')
+
 
     def get_object(self):
         """Возвращает текущего аутентифицированного пользователя"""
@@ -96,13 +97,12 @@ class UserDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """View для удаления профиля пользователя"""
     model = User
     template_name = 'users/user_confirm_delete.html'
-    success_url = reverse_lazy('modules:index')
+    success_url = reverse_lazy('index')
 
     def test_func(self):
         """Проверяет, что текущий пользователь является владельцем профиля"""
         obj = self.get_object()
         return obj == self.request.user
-
 
 class UserPasswordResetView(SuccessMessageMixin, PasswordResetView):
     """View для сброса пароля пользователя"""
