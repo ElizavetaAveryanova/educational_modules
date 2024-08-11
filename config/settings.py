@@ -180,23 +180,23 @@ RECIPIENT_LIST = os.getenv('RECIPIENT_LIST', '').split(',')
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Celery
-# URL-адрес брокера сообщений, Redis
-CELERY_BROKER_URL = "redis://redis:6379/0"
-
-# URL-адрес брокера результатов, Redis
-CELERY_RESULT_BACKEND = "redis://redis:6379/0"
-
-# Celery URL-адрес брокера сообщений, Redis
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
-# URL-адрес брокера результатов, Redis
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
-
-# Часовой пояс для работы Celery
-CELERY_TIMEZONE = TIME_ZONE
-
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60
+# # Celery
+# # URL-адрес брокера сообщений, Redis
+# CELERY_BROKER_URL = "redis://redis:6379/0"
+#
+# # URL-адрес брокера результатов, Redis
+# CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+#
+# # Celery URL-адрес брокера сообщений, Redis
+# CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+# # URL-адрес брокера результатов, Redis
+# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+#
+# # Часовой пояс для работы Celery
+# CELERY_TIMEZONE = TIME_ZONE
+#
+# CELERY_TASK_TRACK_STARTED = True
+# CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # CORS
 CORS_ALLOWED_ORIGINS = [

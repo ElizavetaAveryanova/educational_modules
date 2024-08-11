@@ -29,15 +29,15 @@ urlpatterns = [
     path('', IndexView.as_view(template_name='modules/index.html'), name='index'),
     path('modules/', include('modules.urls', namespace='modules')),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
-    # path(
-    #     "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
-    # ),
-    # path(
-    #     "swagger/",
-    #     schema_view.with_ui("swagger", cache_timeout=0),
-    #     name="schema-swagger-ui",
-    # ),
-    # path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path(
+        "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
+    ),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
