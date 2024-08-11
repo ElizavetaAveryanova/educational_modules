@@ -7,11 +7,11 @@ from rest_framework.views import APIView
 
 from modules.models import Module, Subscription, Lesson
 from modules.paginators import ModulePagination
-from modules.permissions import IsOwnerOrAdmin, IsAdmin
+from modules.permissions import IsOwnerOrAdmin
 from modules.serializers import ModuleSerializer, SubscriptionSerializer, LessonSerializer
 from rest_framework.response import Response
 
-from modules.tasks import send_email_update_modules
+
 
 class IndexView(TemplateView):
     """Контроллер просмотра домашней страницы"""
@@ -60,14 +60,8 @@ class ModuleUpdateAPIView(UpdateAPIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def perform_update(self, serializer):
-        """Обновление модуля"""
-        module = serializer.instance
-
-        # Обновите поля модуля на основе данных из запроса
-        for field in self.request.data:
-            if hasattr(module, field):
-                setattr(module, field, self.request.data.get(field))
-        module.save()
+        """ Обновление модуля """
+        serializer.save()
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
