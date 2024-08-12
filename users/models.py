@@ -7,6 +7,7 @@ NULLABLE = {
     'blank': True,
 }
 class CustomUserManager(BaseUserManager):
+    """Менеджер для создания пользователей и суперпользователей."""
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError(_('The Email must be set'))

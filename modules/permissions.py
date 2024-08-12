@@ -14,15 +14,3 @@ class IsOwnerOrAdmin(BasePermission):
             return True
         return False
 
-class IsAdmin(BasePermission):
-    """
-    Пользователь имеет доступ только если он является владельцем объекта или администратором.
-    """
-
-    message = 'Доступ запрещен. Вы не являетесь администратором.'
-
-    def has_object_permission(self, request, view, obj):
-        # Проверяем, является ли текущий пользователь администратором
-        if obj.owner == request.user.is_staff:
-            return True
-        return False

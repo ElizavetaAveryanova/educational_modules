@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, DestroyAPIView, UpdateAPIView, \
-    get_object_or_404
+    get_object_or_404, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
@@ -10,7 +10,6 @@ from modules.paginators import ModulePagination
 from modules.permissions import IsOwnerOrAdmin
 from modules.serializers import ModuleSerializer, SubscriptionSerializer, LessonSerializer
 from rest_framework.response import Response
-
 
 
 class IndexView(TemplateView):
@@ -33,7 +32,7 @@ class ModuleCreateAPIView(CreateAPIView):
 
 
 class ModuleListAPIView(ListAPIView):
-    """ Список модулей """
+    """ Контроллер просмотра списка модулей """
     serializer_class = ModuleSerializer
     queryset = Module.objects.all()
     pagination_class = ModulePagination
@@ -50,7 +49,6 @@ class ModuleDestroyAPIView(DestroyAPIView):
     serializer_class = ModuleSerializer
     queryset = Module.objects.all()
     permission_classes = [IsOwnerOrAdmin]
-
 
 
 class ModuleUpdateAPIView(UpdateAPIView):
@@ -78,10 +76,12 @@ class LessonCreateAPIView(CreateAPIView):
         # Устанавливаем владельца модуля как текущего пользователя
         serializer.save(owner=self.request.user)
 
+
 class LessonListAPIView(ListAPIView):
     """Список уроков"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
+
 
 class LessonDetailAPIView(RetrieveAPIView):
     """Подробная информация об уроке"""
@@ -96,13 +96,14 @@ class LessonDetailAPIView(RetrieveAPIView):
         data.save()
         return data
 
+
 class LessonDestroyAPIView(DestroyAPIView):
     """Удаление урока"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsOwnerOrAdmin]
 
-class LessonUpdateAPIView(UpdateAPIView):
+class LessonUpdateAPIView(RetrieveUpdateAPIView):
     """Редактирование урока"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
@@ -131,9 +132,11 @@ class SubscriptionView(APIView):
         else:
             return Response({'error': 'Модуль не найден'}, status=status.HTTP_404_NOT_FOUND)
 
-
 class SubscriptionListAPIView(ListAPIView):
-    """ Список подписок """
+    """ Список подписок для текущего пользователя """
     serializer_class = SubscriptionSerializer
-    queryset = Subscription.objects.all()
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]  # Убедитесь, что пользователь аутентифицирован
+
+    def get_queryset(self):
+        user = self.request.user
+        return Subscription.objects.filter(user=user)  # Возвращаем подписки только для текущего пользователя

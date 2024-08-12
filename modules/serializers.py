@@ -2,18 +2,29 @@ from rest_framework import serializers
 from modules.models import Module, Lesson, Subscription
 from modules.validators import LinkValidator
 
+
 class LessonSerializer(serializers.ModelSerializer):
     """Сериализатор для урока"""
+
+    video_link = serializers.CharField(required=False, validators=[LinkValidator(field="video_link")])
+
     class Meta:
         model = Lesson
         fields = (
+            "pk",
             "module",
             "title",
             "description",
             "preview",
             "video_link",
+            "owner",
         )
-        validators = [LinkValidator(field="video_link")]
+        read_only_fields = ['owner']
+
+    def create(self, validated_data):
+        validated_data['owner'] = self.context['request'].user  # Установка текущего пользователя как владельца
+        return super().create(validated_data)
+
 
 
 class ModuleSerializer(serializers.ModelSerializer):
@@ -34,12 +45,14 @@ class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Module
         fields = (
+            "pk",
             "title",
             "description",
             "preview",
             "lessons",
             "lessons_count",
-            "is_subscribed"
+            "is_subscribed",
+            "owner",
         )
 
 

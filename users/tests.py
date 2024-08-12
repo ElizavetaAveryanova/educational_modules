@@ -7,7 +7,7 @@ from django.contrib.messages import get_messages
 
 class CustomUserManagerTests(TestCase):
     def setUp(self):
-        self.email = 'test@example.com'
+        self.email = 'test@educate.com'
         self.password = 'testpassword'
 
     def test_create_user(self):
@@ -38,7 +38,7 @@ class CustomUserManagerTests(TestCase):
 class UserRegisterFormTests(TestCase):
     def setUp(self):
         self.valid_data = {
-            'email': 'test@example.com',
+            'email': 'test@educate.com',
             'first_name': 'Test',
             'last_name': 'User',
             'password1': 'testpassword',
@@ -68,9 +68,9 @@ class UserRegisterFormTests(TestCase):
 
 class UserProfileFormTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email='test@example.com', password='testpassword')
+        self.user = User.objects.create_user(email='test@educate.com', password='testpassword')
         self.valid_data = {
-            'email': 'update@example.com',
+            'email': 'update@educate.com',
             'first_name': 'Updated',
             'last_name': 'Name',
         }
@@ -84,7 +84,7 @@ class UserProfileFormTests(TestCase):
 
 class CustomSetPasswordFormTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email='test@example.com', password='testpassword')
+        self.user = User.objects.create_user(email='test@educate.com', password='testpassword')
         self.new_password_data = {
             'new_password1': '789test123',
             'new_password2': '789test123',
@@ -98,14 +98,14 @@ class CustomSetPasswordFormTests(TestCase):
 
 class CustomPasswordResetFormTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email='test@example.com', password='testpassword')
+        self.user = User.objects.create_user(email='test@educate.com', password='testpassword')
 
     def test_clean_email_existing_user(self):
-        form = CustomPasswordResetForm(data={'email': 'test@example.com'})
+        form = CustomPasswordResetForm(data={'email': 'test@educate.com'})
         self.assertTrue(form.is_valid())
 
     def test_clean_email_non_existing_user(self):
-        form = CustomPasswordResetForm(data={'email': 'notexisting@example.com'})
+        form = CustomPasswordResetForm(data={'email': 'notexisting@educate.com'})
         self.assertFalse(form.is_valid())
         self.assertIn('email', form.errors)
 
@@ -113,18 +113,18 @@ class UserViewsTests(TestCase):
     def setUp(self):
         # Создаем тестового пользователя
         self.user = User.objects.create_user(
-            email='test@example.com',
+            email='test@educate.com',
             password='testpassword',
             first_name='Test',
             last_name='User',
             is_active=True,
             telegram='test_telegram'
         )
-        self.client.login(email='test@example.com', password='testpassword')
+        self.client.login(email='test@educate.com', password='testpassword')
 
     def test_user_register_view(self):
         response = self.client.post(reverse('users:register'), {
-            'email': 'newuser@example.com',
+            'email': 'newuser@educate.com',
             'first_name': 'New',
             'last_name': 'User',
             'password1': 'testpassword',
@@ -132,13 +132,13 @@ class UserViewsTests(TestCase):
             'telegram': 'new_telegram'
         })
         # Проверьте, что редирект произошел
-        self.assertRedirects(response, reverse('modules:index'))
+        self.assertRedirects(response, reverse('index'))
 
         # Проверка наличия сообщения о подтверждении
         messages = list(get_messages(response.wsgi_request))  # Получаем сообщения
-        self.assertEqual(len(messages), 1)  # Убедитесь, что одно сообщение есть
+        self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]),
-                         'Проверьте вашу почту для подтверждения регистрации!')  # Замените на правильное содержание сообщения
+                         'Проверьте вашу почту для подтверждения регистрации!')
 
     def test_user_list_view(self):
         response = self.client.get(reverse('users:user_list'))
@@ -154,17 +154,17 @@ class UserViewsTests(TestCase):
 
     def test_user_profile_update_view(self):
         response = self.client.post(reverse('users:profile_update'), {
-            'email': 'updated@example.com',
+            'email': 'updated@educate.com',
             'first_name': 'Updated',
             'last_name': 'User',
             'telegram': 'updated_telegram'
         })
-        self.user.refresh_from_db()  # Обновите объект пользователя
+        self.user.refresh_from_db()
         self.assertRedirects(response, reverse('users:user_profile'))
-        self.assertEqual(self.user.email, 'updated@example.com')
+        self.assertEqual(self.user.email, 'updated@educate.com')
 
 
     def test_user_delete_view(self):
-        response = self.client.post(reverse('users:user_delete', args=[self.user.pk]))  # Изменено на 'user_delete'
-        self.assertRedirects(response, reverse('modules:index'))
+        response = self.client.post(reverse('users:user_delete', args=[self.user.pk]))
+        self.assertRedirects(response, reverse('index'))
         self.assertFalse(User.objects.filter(pk=self.user.pk).exists())

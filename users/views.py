@@ -14,8 +14,33 @@ from django.utils.html import strip_tags
 from users.models import User
 import uuid
 from django.contrib import messages
+from rest_framework import generics, status
+from rest_framework.response import Response
+from users.serializers import UserRegisterSerializer
 
 
+class UserRegisterAPIView(generics.CreateAPIView):
+    """API для регистрации нового пользователя"""
+    serializer_class = UserRegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Генерация ссылки для подтверждения
+        confirmation_link = request.build_absolute_uri(reverse('users:confirm_registration', args=[user.token]))
+
+        # Отправка письма
+        subject = 'Подтверждение регистрации'
+        html_message = render_to_string('users/registration_email.html', {
+            'user': user,  # Теперь user должен содержать first_name
+            'confirmation_link': confirmation_link
+        })
+        plain_message = strip_tags(html_message)
+        send_mail(subject, plain_message, EMAIL_HOST_USER, [user.email], html_message=html_message)
+
+        return Response({'message': 'Проверьте вашу почту для подтверждения регистрации!'}, status=status.HTTP_201_CREATED)
 class UserRegisterView(CreateView):
     """Регистрация нового пользователя"""
     form_class = UserRegisterForm
@@ -24,8 +49,8 @@ class UserRegisterView(CreateView):
     def form_valid(self, form):
         """Сохранение пользователя и отправка письма для подтверждения регистрации"""
         user = form.save(commit=False)
-        user.is_active = False  # Неактивен до подтверждения
-        user.token = self.generate_token()  # Генерация токена
+        user.is_active = False
+        user.token = self.generate_token()
         user.save()
 
         # Генерация ссылки для подтверждения
@@ -125,8 +150,8 @@ class UserPasswordResetConfirmView(SuccessMessageMixin, PasswordResetConfirmView
 
 # Вход пользователя
 class UserLoginView(LoginView):
-    template_name = 'users/user_login.html'  # Путь к вашему шаблону входа
-    redirect_authenticated_user = True  # Перенаправляет аутентифицированных пользователей
+    template_name = 'users/user_login.html'
+    redirect_authenticated_user = True
 
 def confirm_registration(request, token):
     try:
@@ -137,7 +162,7 @@ def confirm_registration(request, token):
 
         # Если пользователь не активен, активируем его
         user.is_active = True
-        user.token = None  # Удаляем токен после подтверждения
+        user.token = None
         user.save()
         messages.success(request, "Ваш аккаунт успешно подтвержден! Теперь вы можете войти на сайт.")
 

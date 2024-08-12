@@ -25,9 +25,9 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/', include('users.urls', namespace='users')),
     path('', IndexView.as_view(template_name='modules/index.html'), name='index'),
     path('modules/', include('modules.urls', namespace='modules')),
+    path('users/', include('users.urls', namespace='users')),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path(
         "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
