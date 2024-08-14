@@ -21,7 +21,6 @@
 - Django Rest Framework
 - PostgreSQL
 - Redis
-- JWT
 - Docker
 - Docker Compose
 - CORS
