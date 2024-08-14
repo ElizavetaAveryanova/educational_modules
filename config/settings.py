@@ -128,22 +128,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'users:login'
-# LOGIN_REDIRECT_URL = 'modules:module_list'  # URL, куда будут перенаправлены пользователи после входа
-
-LOGOUT_REDIRECT_URL = 'index'
-LOGIN_URL = 'users:login'
-LOGIN_REDIRECT_URL = '/'
 
 # User
 AUTH_USER_MODEL = "users.User"
-
 
 # Authentication
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
-
 
 # Cache
 CACHE_ENABLED = os.getenv('CACHE_ENABLED') == 'True'
@@ -152,49 +145,18 @@ if CACHE_ENABLED:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': "redis://127.0.0.1:6379",
+            'LOCATION': os.getenv('REDIS')
         }
     }
-
-
-# Celery-beat
-CELERY_BEAT_SCHEDULE = {
-    'check_users_and_block_inactive': {
-        'task': 'modules.tasks.send_email_update_modules',
-        'schedule': timedelta(minutes=1),
-    },
-}
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = os.getenv('EMAIL_PORT')
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", False) == "True"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False) == "True"
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-RECIPIENT_LIST = os.getenv('RECIPIENT_LIST', '').split(',')
-
-SERVER_EMAIL = EMAIL_HOST_USER
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-# # Celery
-# # URL-адрес брокера сообщений, Redis
-# CELERY_BROKER_URL = "redis://redis:6379/0"
-#
-# # URL-адрес брокера результатов, Redis
-# CELERY_RESULT_BACKEND = "redis://redis:6379/0"
-#
-# # Celery URL-адрес брокера сообщений, Redis
-# CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
-# # URL-адрес брокера результатов, Redis
-# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
-#
-# # Часовой пояс для работы Celery
-# CELERY_TIMEZONE = TIME_ZONE
-#
-# CELERY_TASK_TRACK_STARTED = True
-# CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
